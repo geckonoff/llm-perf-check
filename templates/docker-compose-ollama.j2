@@ -1,0 +1,16 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    deploy:
+      resources:
+        devices:
+          - driver: rocm
+            count: all
+            capabilities: [gpu]
+    volumes:
+      - /opt/ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_NUM_GPU=1
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0

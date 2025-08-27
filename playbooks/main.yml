@@ -1,7 +1,28 @@
 - hosts: hypervisor
   roles:
-      - vm_manager
-      - rocm_validator
-      - docker_installer
-      - ollama_runner
-      - localai_runner
+    - role: vm_manager
+      vars:
+        vm_name: "llm-test-{{ timestamp }}"
+        base_image: "/path/to/ubuntu-rocm.qcow2"
+        mount_point: "/mnt/netfs_share"
+
+    - role: rocm_validator
+      delegate_to: "{{ vm_ip }}"
+
+    - role: docker_installer
+      delegate_to: "{{ vm_ip }}"
+
+    - role: ollama_runner
+      delegate_to: "{{ vm_ip }}"
+      vars:
+        test_script: "tests/ollama_perf.py"
+        results_path: "{{ mount_point }}/results/ollama/{{ timestamp }}"
+
+    - role: localai_runner
+      delegate_to: "{{ vm_ip }}"
+      vars:
+        test_script: "tests/localai_perf.py"
+        results_path: "{{ mount_point }}/results/localai/{{ timestamp }}"
+
+    - role: vm_manager
+      action: destroy_vm

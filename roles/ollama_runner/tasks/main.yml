@@ -1,0 +1,23 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for ollama_runner
+- name: Deploy Ollama compose
+  template:
+    src: templates/docker-compose-ollama.j2
+    dest: "/opt/ollama/docker-compose.yml"
+
+- name: Run Ollama with GPU
+  community.docker.docker_compose:
+    project_src: /opt/ollama
+    state: present
+
+- name: Execute performance tests
+  script: "{{ test_script }}"
+  args:
+    executable: python3
+  register: test_results
+
+- name: Save results
+  copy:
+    content: "{{ test_results.stdout }}"
+    dest: "{{ results_path }}/perf.log"

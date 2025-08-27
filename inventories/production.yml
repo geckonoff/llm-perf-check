@@ -1,0 +1,3 @@
+hypervisor:
+  hosts:
+    debian-server:

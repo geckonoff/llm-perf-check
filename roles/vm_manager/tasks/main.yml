@@ -1,0 +1,16 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for rocm_validator
+- name: Create VM from template
+  community.libvirt.virt:
+    xml: "{{ lookup('template', 'templates/vm.xml.j2') }}"
+    state: running
+
+- name: Wait for VM boot
+  wait_for_connection:
+    timeout: 300
+
+- name: Gather VM IP
+  community.libvirt.virt_net:
+    name: "{{ vm_name }}"
+  register: vm_ip

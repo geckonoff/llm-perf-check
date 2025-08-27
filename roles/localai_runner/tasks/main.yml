@@ -1,0 +1,57 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Create LocalAI directory
+  file:
+    path: "/opt/localai"
+    state: directory
+    mode: '0755'
+
+- name: Deploy LocalAI docker-compose
+  template:
+    src: docker-compose-localai.j2
+    dest: "/opt/localai/docker-compose.yml"
+    mode: '0644'
+
+- name: Pull LocalAI image
+  community.docker.docker_image:
+    name: "quay.io/go-skynet/local-ai:latest"
+    source: pull
+
+- name: Start LocalAI container
+  community.docker.docker_compose:
+    project_src: /opt/localai
+    state: present
+    restarted: yes
+    pull: yes
+
+- name: Wait for LocalAI to be ready
+  uri:
+    url: "http://localhost:8080/v1/models"
+    method: GET
+    status_code: 200
+    timeout: 30
+  register: result
+  until: result.status == 200
+  retries: 10
+  delay: 10
+
+- name: Run LocalAI performance tests
+  script: "{{ playbook_dir }}/tests/localai_perf.py"
+  args:
+    executable: python3
+  register: test_results
+
+- name: Save LocalAI test results
+  copy:
+    content: |
+      LocalAI Performance Test Results
+      ================================
+      {{ test_results.stdout }}
+      
+      Exit Code: {{ test_results.rc }}
+    dest: "{{ results_path }}/localai_perf_{{ ansible_date_time.iso8601_basic_short }}.log"
+
+- name: Stop LocalAI container
+  community.docker.docker_compose:
+    project_src: /opt/localai
+    state: absent

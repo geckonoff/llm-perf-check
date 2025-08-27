@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for rocm_validator
+- name: Verify ROCm installation
+  shell: rocminfo
+  register: rocminfo_result
+
+- name: Save ROCm info
+  copy:
+    content: "{{ rocminfo_result.stdout }}"
+    dest: "{{ mount_point }}/rocminfo-{{ timestamp }}.log"

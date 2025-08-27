@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  localai:
+    image: quay.io/go-skynet/local-ai:latest
+    runtime: rocm
+    environment:
+      - MODELS_PATH=/models
+      - GPU_LAYERS={{ gpu_layers | default(32) }}
+      - THREADS={{ threads | default(16) }}
+      - CONTEXT_SIZE={{ context_size | default(2048) }}
+      - DEBUG={{ debug_mode | default(true) }}
+      - ROCM_FLAGS=--verbose
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models:/models
+      - ./config:/config
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: rocm
+              count: all
+              capabilities: [gpu]
