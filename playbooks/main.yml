@@ -1,0 +1,7 @@
+- hosts: hypervisor
+  roles:
+      - vm_manager
+      - rocm_validator
+      - docker_installer
+      - ollama_runner
+      - localai_runner
